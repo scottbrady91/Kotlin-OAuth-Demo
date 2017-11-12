@@ -28,13 +28,15 @@ namespace AuthorizationServer
             ClientId = "kotlin_oauth",
             AllowedGrantTypes = GrantTypes.ClientCredentials,
             ClientSecrets = { new Secret("client_password".Sha256()) },
-            AllowedScopes = { "api1" }
+            AllowedScopes = { "api1.read", "api1.write" }
         };
+
+        private ApiResource api = new ApiResource("api1") { Scopes = { new Scope("api1.read"), new Scope("api1.write") } };
 
         public void ConfigureServices(IServiceCollection services)
         {
             var builder = services.AddIdentityServer()
-                .AddInMemoryApiResources(new List<ApiResource> { new ApiResource("api1") })
+                .AddInMemoryApiResources(new List<ApiResource> { api })
                 .AddInMemoryClients(new List<Client> { client })
                 .AddDeveloperSigningCredential();
 

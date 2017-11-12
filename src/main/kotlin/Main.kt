@@ -5,7 +5,7 @@ import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 
 fun main(args: Array<String>) {
-    val response: TokenResponse = getClientCredential("http://localhost:5000/connect/token", "kotlin_oauth", "client_password")
+    val response: TokenResponse = getClientCredential("http://localhost:5000/connect/token", "kotlin_oauth", "client_password", listOf("api1.read", "api1.write"))
 
     println(response.token)
     println(response.expiresIn)
@@ -16,9 +16,10 @@ fun main(args: Array<String>) {
     println(apiResponse)
 }
 
-fun getClientCredential(tokenEndpoint: String, clientId: String, clientSecret: String): TokenResponse {
+fun getClientCredential(tokenEndpoint: String, clientId: String, clientSecret: String, scopes: List<String>): TokenResponse {
     val (request, response, result) = tokenEndpoint.httpPost(listOf(
-            "grant_type" to "client_credentials"))
+            "grant_type" to "client_credentials",
+            "scope" to scopes.joinToString(" ")))
             .authenticate(clientId, clientSecret)
             .responseString()
 
