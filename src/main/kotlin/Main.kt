@@ -1,5 +1,6 @@
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 
@@ -9,13 +10,16 @@ fun main(args: Array<String>) {
     println(response.token)
     println(response.expiresIn)
     println(response.tokenType)
+
+    val apiResponse = callApi("http://localhost:5000/api", response.tokenType, response.token)
+
+    println(apiResponse)
 }
 
 fun getClientCredential(tokenEndpoint: String, clientId: String, clientSecret: String): TokenResponse {
     val (request, response, result) = tokenEndpoint.httpPost(listOf(
-            "grant_type" to "client_credentials",
-            "client_id" to clientId,
-            "client_secret" to clientSecret))
+            "grant_type" to "client_credentials"))
+            .authenticate(clientId, clientSecret)
             .responseString()
 
     when (result) {
@@ -35,7 +39,17 @@ fun getClientCredential(tokenEndpoint: String, clientId: String, clientSecret: S
     }
 }
 
-class TokenResponse(val token: String, val expiresIn: Int, val tokenType: String){
-    val header: String = "Bearer $token"
+fun callApi(apiEndpoint: String, tokenType: String, token: String): String {
+    val (request, response, result) = apiEndpoint.httpGet().header(Pair("Authorization", "$tokenType $token")).responseString()
+
+    return when (result) {
+        is Result.Success -> {
+            result.value
+        }
+        is Result.Failure -> {
+            "error!"
+        }
+    }
 }
 
+class TokenResponse(val token: String, val expiresIn: Int, val tokenType: String)
